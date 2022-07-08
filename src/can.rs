@@ -65,7 +65,7 @@ where
         _tx: TX,
         _rx: RX,
         prec: rec::Fdcan,
-    ) -> fdcan::FdCan<Can<Self>, fdcan::ConfigMode>
+    ) -> (fdcan::FdCan<Can<Self>, fdcan::ConfigMode>, rec::Fdcan)
     where
         TX: sealed::Tx<Self>,
         RX: sealed::Rx<Self>,
@@ -76,7 +76,7 @@ where
     fn fdcan_unchecked(
         self,
         prec: rec::Fdcan,
-    ) -> fdcan::FdCan<Can<Self>, fdcan::ConfigMode>;
+    ) -> (fdcan::FdCan<Can<Self>, fdcan::ConfigMode>, rec::Fdcan);
 }
 
 /// Configure Message RAM layout on H7 to match the fixed sized used on G4
@@ -207,22 +207,22 @@ mod fdcan1 {
         pub fn fdcan1(
             rb: FDCAN1,
             prec: rec::Fdcan,
-        ) -> fdcan::FdCan<Self, fdcan::ConfigMode> {
-            prec.enable(); // Enable APB1 peripheral clock
+        ) -> (fdcan::FdCan<Self, fdcan::ConfigMode>, rec::Fdcan) {
+            let rec = prec.enable(); // Enable APB1 peripheral clock
 
             // Initialisation and RAM layout configuation
             let mut fdcan = fdcan::FdCan::new(Self { rb }).into_config_mode();
             let can = fdcan.instance().inner();
             message_ram_layout!(can, 0x000);
 
-            fdcan
+            (fdcan, rec)
         }
     }
     impl CanExt for FDCAN1 {
         fn fdcan_unchecked(
             self,
             prec: rec::Fdcan,
-        ) -> fdcan::FdCan<Can<Self>, fdcan::ConfigMode> {
+        ) -> (fdcan::FdCan<Can<Self>, fdcan::ConfigMode>, rec::Fdcan) {
             Can::fdcan1(self, prec)
         }
     }
@@ -243,22 +243,22 @@ mod fdcan2 {
         pub fn fdcan2(
             rb: FDCAN2,
             prec: rec::Fdcan,
-        ) -> fdcan::FdCan<Self, fdcan::ConfigMode> {
-            prec.enable(); // Enable APB1 peripheral clock
+        ) -> (fdcan::FdCan<Self, fdcan::ConfigMode>, rec::Fdcan) {
+            let rec = prec.enable(); // Enable APB1 peripheral clock
 
             // Initialisation and RAM layout configuation
             let mut fdcan = fdcan::FdCan::new(Self { rb }).into_config_mode();
             let can = fdcan.instance().inner();
             message_ram_layout!(can, 0x400); // + 1k words = 4kB
 
-            fdcan
+            (fdcan, rec)
         }
     }
     impl CanExt for FDCAN2 {
         fn fdcan_unchecked(
             self,
             prec: rec::Fdcan,
-        ) -> fdcan::FdCan<Can<Self>, fdcan::ConfigMode> {
+        ) -> (fdcan::FdCan<Can<Self>, fdcan::ConfigMode>, rec::Fdcan) {
             Can::fdcan2(self, prec)
         }
     }
